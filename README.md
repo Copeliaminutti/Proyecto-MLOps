@@ -31,7 +31,7 @@ python -m venv .venv && source .venv/bin/activate  # win: .venv\Scripts\activate
 # Dependencias
 pip install -r requirements.txt
 
-# inicializar DVC en tu entorno local
+# inicializar DVC en entorno local
 dvc init
 # (opcional remoto)
 # dvc remote add -d storage gdrive://<id_carpeta>
