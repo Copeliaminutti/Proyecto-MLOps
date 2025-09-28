@@ -21,25 +21,6 @@ tu-proyecto-mlops/
 ```
 
 ```bash
-# Clonar 
-git clone https://github.com/tu-usuario/tu-proyecto-mlops.git
-cd proyecto-mlops
-
-# (opcional) 
-python -m venv .venv && source .venv/bin/activate  # win: .venv\Scripts\activate
-
-# Dependencias
-pip install -r requirements.txt
-
-# inicializar DVC en entorno local
-dvc init
-# (opcional remoto)
-# dvc remote add -d storage gdrive://<id_carpeta>
-
-# ejecutar pre-commit localmente
-pre-commit install
-pre-commit run --all-files
-```
 
 ## Flujo de trabajo
 - Ramas: `main` (estable), `dev` (integración) y ramas por feature: `feat/eda`, `feat/features`, `feat/train`, etc.
