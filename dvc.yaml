@@ -1,0 +1,25 @@
+stages:
+  eda_clean:
+    cmd: python src/data/clean.py --cfg configs/eda.yaml
+    deps:
+      - src/data/clean.py
+      - configs/eda.yaml
+      - data/raw
+    outs:
+      - data/processed
+  features:
+    cmd: python src/features/build_features.py --cfg configs/features.yaml
+    deps:
+      - src/features/build_features.py
+      - configs/features.yaml
+      - data/processed
+    outs:
+      - data/interim
+  train:
+    cmd: python src/models/train.py --cfg configs/train.yaml
+    deps:
+      - src/models/train.py
+      - configs/train.yaml
+      - data/interim
+    outs:
+      - artifacts/model.pkl

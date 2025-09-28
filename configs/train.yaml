@@ -1,0 +1,7 @@
+model: RandomForestClassifier
+params:
+  n_estimators: 200
+  max_depth: 8
+metrics:
+  - accuracy
+  - f1

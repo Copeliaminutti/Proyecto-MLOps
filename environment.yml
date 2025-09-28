@@ -1,0 +1,21 @@
+name: tu-proyecto-mlops
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pandas
+  - numpy
+  - scikit-learn
+  - matplotlib
+  - pip
+  - pip:
+      - dvc
+      - pyyaml
+      - pytest
+      - black
+      - isort
+      - flake8
+      - pre-commit
+      - fastapi
+      - uvicorn
+      - joblib
