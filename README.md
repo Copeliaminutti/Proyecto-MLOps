@@ -4,7 +4,7 @@ Monorepo del proyecto de ML de punta a punta (EDA → features → entrenamiento
 
 ## Estructura
 ```
-tu-proyecto-mlops/
+proyecto-mlops/
 ├─ README.md
 ├─ .gitignore
 ├─ .gitattributes
