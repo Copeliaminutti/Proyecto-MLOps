@@ -1,0 +1,67 @@
+schema: '2.0'
+stages:
+  eda_clean:
+    cmd: python3 src/data/clean.py --cfg configs/eda.yaml
+    deps:
+    - path: configs/eda.yaml
+      hash: md5
+      md5: 3ed6c44b7b383d00c43bfa54556362f5
+      size: 69
+    - path: data/raw
+      hash: md5
+      md5: 3be1953d9913f81eadd1da9aee609c0d.dir
+      size: 6315403
+      nfiles: 4
+    - path: src/data/clean.py
+      hash: md5
+      md5: 89f168fda79a7019ad7f46ec287bcabb
+      size: 961
+    outs:
+    - path: data/processed
+      hash: md5
+      md5: c345e2477abbb49a4e785788abdecb0d.dir
+      size: 2567368
+      nfiles: 1
+  features:
+    cmd: python3 src/features/build_features.py --cfg configs/features.yaml
+    deps:
+    - path: configs/features.yaml
+      hash: md5
+      md5: d5dbd0194030d06b0a8fb00b6a3cad50
+      size: 32
+    - path: data/processed
+      hash: md5
+      md5: c345e2477abbb49a4e785788abdecb0d.dir
+      size: 2567368
+      nfiles: 1
+    - path: src/features/build_features.py
+      hash: md5
+      md5: 87eea598d3d36b226d242571d25c5dc9
+      size: 863
+    outs:
+    - path: data/interim
+      hash: md5
+      md5: 4d2b5b35f525f9e5b81d4567da9b5093.dir
+      size: 2567368
+      nfiles: 1
+  train:
+    cmd: python3 src/models/train.py --cfg configs/train.yaml
+    deps:
+    - path: configs/train.yaml
+      hash: md5
+      md5: 58f79f8aae38aab1e6d92b05f44f1c10
+      size: 414
+    - path: data/interim
+      hash: md5
+      md5: 4d2b5b35f525f9e5b81d4567da9b5093.dir
+      size: 2567368
+      nfiles: 1
+    - path: src/models/train.py
+      hash: md5
+      md5: 35247692fffb7846854382b450b97fd2
+      size: 12711
+    outs:
+    - path: artifacts/model.pkl
+      hash: md5
+      md5: 8b369a93293d385a9b98b6b103a78973
+      size: 71554479
