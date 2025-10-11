@@ -1,0 +1,6 @@
+outs:
+- md5: e0b2b62fbe84413c31d8c58f695785c3.dir
+  size: 372042
+  nfiles: 21
+  hash: md5
+  path: reports_eda
