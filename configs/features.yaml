@@ -1,2 +1,15 @@
 scaling: standard
 one_hot: true
+numeric_features:
+  - lagging_current_reactive.power_kvarh
+  - leading_current_reactive_power_kvarh
+  - co2(tco2)
+  - lagging_current_power_factor
+  - leading_current_power_factor
+  - nsm
+  - mixed_type_col
+categorical_features:
+  - weekstatus
+  - day_of_week
+  - load_type
+target: usage_kwh

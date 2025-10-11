@@ -23,3 +23,13 @@ stages:
       - data/interim
     outs:
       - artifacts/model.pkl
+  evaluate:
+    cmd: python3 src/models/evaluate.py
+    deps:
+      - src/models/evaluate.py
+      - artifacts/model.pkl
+      - configs/train.yaml
+      - data/interim
+    outs:
+      - artifacts/eval/plots
+      - artifacts/eval/metrics.json

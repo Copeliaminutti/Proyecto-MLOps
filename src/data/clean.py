@@ -11,6 +11,7 @@ def clean(df: pd.DataFrame, cfg: dict) -> pd.DataFrame:
     # TODO: outliers según cfg
     return df
 
+
 def main(args=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("--cfg", type=str, default="configs/eda.yaml")

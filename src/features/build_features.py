@@ -4,7 +4,24 @@ import yaml
 from pathlib import Path
 
 def build(df: pd.DataFrame, cfg: dict) -> pd.DataFrame:
-    # TODO: implementar escalado/one-hot según cfg
+    # Remove 'date' column explicitly if present
+    if 'date' in df.columns:
+        df = df.drop(columns=['date'])
+    # Standardize column names
+    df.columns = df.columns.str.strip().str.lower()
+    # Remove date/time columns from features
+    date_keywords = ['date', 'fecha', 'time', 'timestamp', 'hour', 'minute', 'second']
+    num_cols = [c.lower() for c in cfg.get('numeric_features', []) if not any(k in c.lower() for k in date_keywords)]
+    cat_cols = [c.lower() for c in cfg.get('categorical_features', []) if not any(k in c.lower() for k in date_keywords)]
+    target = cfg.get('target', None)
+
+    # One-hot encoding
+    if cfg.get('one_hot', False) and cat_cols:
+        df = pd.get_dummies(df, columns=cat_cols, drop_first=False)
+        # After encoding, update num_cols to include new dummies
+        new_cols = [col for col in df.columns if col != target]
+        num_cols = [col for col in new_cols if col != target]
+
     return df
 
 def main(args=None):

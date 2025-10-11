@@ -1,19 +1,57 @@
-target: Load_Type
+input: steel_energy_model_fullgrid.csv
+target: usage_kwh
 numeric_features:
-  - Usage_kWh
-  - Lagging_Current_Reactive.Power_kVarh
-  - Leading_Current_Reactive_Power_kVarh
-  - CO2(tCO2)
-  - Lagging_Current_Power_Factor
-  - Leading_Current_Power_Factor
-  - NSM
+  - lagging_current_reactive_power_kvarh
+  - leading_current_reactive_power_kvarh
+  - co2_tco2
+  - lagging_current_power_factor
+  - leading_current_power_factor
+  - nsm
   - mixed_type_col
+categorical_features:
+  - week_status
+  - day_of_week
+  - load_type
+
+models:
+  Ridge:
+    type: ridge
+    params:
+      alpha: 1.0
+      fit_intercept: true
+      random_state: 42
+
+  LinearRegression:
+    type: linear_regression
+    params:     
+      fit_intercept: true
+      copy_X: true
+      n_jobs: 1
+
+  kNN:
+    type: knn
+    params:
+      n_neighbors: 50
+      weights: distance
+      metric: minkowski
+      p: 2
+  RegressionTree:
+    type: decision_tree
+    params:
+      max_depth: 10
+      min_samples_split: 2
+      min_samples_leaf: 1
+      random_state: 42
+  RandomForestRegressor:
+    type: random_forest
+    params:
+      n_estimators: 15
+      max_depth: 4
+    metrics:
+      - accuracy
+      - f1
+
 test_size: 0.12
 val_size: 0.2
-stratify: true
-outer_split_random_state: 0
-inner_split_random_state: 5
-model_random_state: 42
-cv_n_splits: 3
-cv_n_repeats: 1
-search_cv_splits: 3
+random_state: 42
+val_random_state: 43

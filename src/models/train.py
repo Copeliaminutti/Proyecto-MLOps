@@ -1,25 +1,29 @@
 import argparse
-import importlib
 from pathlib import Path
-from typing import Any, Dict, Iterable, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
 import joblib
+from sklearn.linear_model import Ridge
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import yaml
-from sklearn.metrics import (
-    accuracy_score,
-    f1_score,
-    mean_absolute_error,
-    mean_squared_error,
-    precision_score,
-    r2_score,
-    recall_score,
-)
-from sklearn.model_selection import train_test_split
+from sklearn.compose import ColumnTransformer
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import make_scorer, mean_absolute_error, mean_squared_error, r2_score
+from sklearn.model_selection import RepeatedKFold, cross_validate, train_test_split
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.svm import SVR
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 
-## Defining the numerical features that are expected in the dataset. 
+DEFAULT_TARGET = "Usage_kWh"
 DEFAULT_NUMERIC_FEATURES = [
-    "Usage_kWh",
     "Lagging_Current_Reactive.Power_kVarh",
     "Leading_Current_Reactive_Power_kVarh",
     "CO2(tCO2)",
@@ -29,291 +33,343 @@ DEFAULT_NUMERIC_FEATURES = [
     "mixed_type_col",
 ]
 
-DEFAULT_METRIC_NAMES: Dict[str, Iterable[str]] = {
-    "classification": ("accuracy", "f1_weighted"),
-    "regression": ("r2", "rmse"),
+MODEL_TYPE_ALIASES = {
+    "linear_regression": "linear_regression",
+    "linear": "linear_regression",
+    "lr": "linear_regression",
+    "ridge": "ridge",
+    "regression_ridge": "ridge",
+    "regresion_ridge": "ridge",
+    "regression_lineal": "linear_regression",
+    "regresion_lineal": "linear_regression",
+    "k_neighbors": "knn",
+    "k-nearest": "knn",
+    "k-nearest-neighbors": "knn",
+    "knearest": "knn",
+    "knn": "knn",
+    "regression_tree": "decision_tree",
+    "decision_tree": "decision_tree",
+    "tree": "decision_tree",
+    "svm": "svm",
+    "svr": "svm",
+    "support_vector_machine": "svm",
+    "support_vector_regression": "svm",
+    "random_forest": "random_forest",
+    "rf": "random_forest",
+    "gradient_boosting": "gradient_boosting",
+    "gbr": "gradient_boosting",
+
 }
 
-## Defining the models that are going to be used in the training process.
-## Important that we are using regression models since the target variable is continuous.
-BUILTIN_MODEL_REGISTRY = {
-    "LinearRegression": ("sklearn.linear_model", "LinearRegression", "regression"),
-    "LogisticRegression": ("sklearn.linear_model", "LogisticRegression", "classification"),
-    "DecisionTreeRegressor": ("sklearn.tree", "DecisionTreeRegressor", "regression"),
-    "DecisionTreeClassifier": ("sklearn.tree", "DecisionTreeClassifier", "classification"),
-    "KNeighborsRegressor": ("sklearn.neighbors", "KNeighborsRegressor", "regression"),
-    "KNeighborsClassifier": ("sklearn.neighbors", "KNeighborsClassifier", "classification"),
-    "RandomForestRegressor": ("sklearn.ensemble", "RandomForestRegressor", "regression"),
-    "RandomForestClassifier": ("sklearn.ensemble", "RandomForestClassifier", "classification"),
+MODEL_REGISTRY: Dict[str, Any] = {
+    "linear_regression": LinearRegression,
+    "ridge": Ridge,
+    "knn": KNeighborsRegressor,
+    "decision_tree": DecisionTreeRegressor,
+    "svm": SVR,
+    "random_forest": RandomForestRegressor,
+    "gradient_boosting": GradientBoostingRegressor,
 }
-
-
-def metric_f1_weighted(y_true, y_pred) -> float:
-    return f1_score(y_true, y_pred, average="weighted", zero_division=0)
-
-
-def metric_f1_macro(y_true, y_pred) -> float:
-    return f1_score(y_true, y_pred, average="macro", zero_division=0)
-
-
-def metric_precision_weighted(y_true, y_pred) -> float:
-    return precision_score(y_true, y_pred, average="weighted", zero_division=0)
-
-
-def metric_precision_macro(y_true, y_pred) -> float:
-    return precision_score(y_true, y_pred, average="macro", zero_division=0)
-
-
-def metric_recall_weighted(y_true, y_pred) -> float:
-    return recall_score(y_true, y_pred, average="weighted", zero_division=0)
-
-
-def metric_recall_macro(y_true, y_pred) -> float:
-    return recall_score(y_true, y_pred, average="macro", zero_division=0)
-
-
-def metric_rmse(y_true, y_pred) -> float:
-    return mean_squared_error(y_true, y_pred, squared=False)
-
-
-METRIC_REGISTRY: Dict[str, Dict[str, Dict[str, Any]]] = {
-    "classification": {
-        "accuracy": {"func": accuracy_score, "greater_is_better": True},
-        "f1": {"func": metric_f1_macro, "greater_is_better": True},
-        "f1_weighted": {"func": metric_f1_weighted, "greater_is_better": True},
-        "precision": {"func": metric_precision_macro, "greater_is_better": True},
-        "precision_weighted": {"func": metric_precision_weighted, "greater_is_better": True},
-        "recall": {"func": metric_recall_macro, "greater_is_better": True},
-        "recall_weighted": {"func": metric_recall_weighted, "greater_is_better": True},
-    },
-    "regression": {
-        "r2": {"func": r2_score, "greater_is_better": True},
-        "rmse": {"func": metric_rmse, "greater_is_better": False},
-        "mse": {"func": mean_squared_error, "greater_is_better": False},
-        "mae": {"func": mean_absolute_error, "greater_is_better": False},
-    },
-}
-
-
+    
 def load_config(path: str) -> Dict[str, Any]:
-    return yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+    cfg_path = Path(path)
+    if not cfg_path.exists():
+        raise FileNotFoundError(f"No se encontró el archivo de configuración: {cfg_path}")
+    return yaml.safe_load(cfg_path.read_text(encoding="utf-8")) or {}
 
 
-def resolve_estimator(estimator_name: str) -> Tuple[Any, Optional[str]]:
-    module_name: Optional[str]
-    class_name = estimator_name
+def ensure_numeric_features(df: pd.DataFrame, numeric_cols: Sequence[str]) -> pd.DataFrame:
+    missing = [col for col in numeric_cols if col not in df.columns]
+    if missing:
+        raise ValueError(f"Faltan columnas numéricas en el dataset: {missing}")
+    return df[numeric_cols].apply(pd.to_numeric, errors="coerce")
 
-    if "." in estimator_name:
-        module_name, class_name = estimator_name.rsplit(".", 1)
-        default_task = BUILTIN_MODEL_REGISTRY.get(class_name, (None, None, None))[2]
+
+def normalise_model_type(raw_type: Optional[str]) -> str:
+    if not raw_type:
+        raise ValueError("Cada modelo necesita un campo 'type'.")
+    key = raw_type.strip().lower()
+    if key not in MODEL_TYPE_ALIASES:
+        raise ValueError(
+            f"Tipo de modelo '{raw_type}' no soportado. Tipos válidos: {sorted(MODEL_TYPE_ALIASES)}"
+        )
+    return MODEL_TYPE_ALIASES[key]
+
+
+def build_default_models() -> List[Dict[str, Any]]:
+    return [
+        {"name": "LinearRegression", "type": "linear_regression", "params": {}},
+        {"name": "Ridge", "type": "ridge", "params": {"alpha": 1.0, "fit_intercept": True, "random_state": 42}},
+        {"name": "KNN", "type": "knn", "params": {"n_neighbors": 50, "weights": "distance"}},
+        {
+            "name": "RegressionTree",
+            "type": "decision_tree",
+            "params": {"max_depth": 30, "min_samples_leaf": 1000, "random_state": 2},
+        },
+        {
+            "name": "RandomForest",
+            "type": "decision_tree",
+            "params": {
+                "max_depth": 20,
+                "min_samples_leaf": 10,
+                "random_state": 42
+            }
+        },
+    ]
+
+
+def load_model_specs(cfg: Dict[str, Any]) -> List[Dict[str, Any]]:
+    if "models" not in cfg or not cfg["models"]:
+        return build_default_models()
+
+    raw_models = cfg["models"]
+    specs: List[Dict[str, Any]] = []
+
+    if isinstance(raw_models, dict):
+        items = raw_models.items()
+    elif isinstance(raw_models, list):
+        items = []
+        for idx, entry in enumerate(raw_models):
+            if not isinstance(entry, dict):
+                raise ValueError("Cada elemento dentro de 'models' debe ser un mapeo/diccionario.")
+            name = entry.get("name") or f"model_{idx}"
+            spec = dict(entry)
+            spec.pop("name", None)
+            items.append((name, spec))
     else:
-        if estimator_name not in BUILTIN_MODEL_REGISTRY:
-            raise ValueError(f"Unsupported estimator '{estimator_name}'. Provide a full dotted path.")
-        module_name, class_name, default_task = BUILTIN_MODEL_REGISTRY[estimator_name]
-    estimator_cls = getattr(importlib.import_module(module_name), class_name)
-    return estimator_cls, default_task
+        raise ValueError("El campo 'models' debe ser un diccionario o una lista de diccionarios.")
+
+    for name, data in items:
+        model_type = normalise_model_type(data.get("type"))
+        params = dict(data.get("params", {}))
+        specs.append({"name": name, "type": model_type, "params": params})
+
+    return specs
 
 
-def normalize_models_config(raw_models: Any, cfg: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
-    if raw_models:
-        if isinstance(raw_models, dict):
-            models = {}
-            for key, value in raw_models.items():
-                if isinstance(value, dict):
-                    model_cfg = dict(value)
-                else:
-                    model_cfg = {"estimator": value}
-                model_cfg.setdefault("name", key)
-                models[model_cfg["name"]] = model_cfg
-            return models
-        if isinstance(raw_models, list):
-            models = {}
-            for idx, item in enumerate(raw_models):
-                if not isinstance(item, dict):
-                    raise ValueError("Each item in models list must be a mapping.")
-                name = item.get("name") or f"model_{idx}"
-                models[name] = dict(item)
-                models[name]["name"] = name
-            return models
-        raise ValueError("Unsupported models configuration format.")
-
-    estimator_name = cfg.get("model", "RandomForestClassifier")
-    legacy_model_cfg = {
-        "name": cfg.get("model_name", estimator_name),
-        "estimator": estimator_name,
-        "params": cfg.get("params", {}),
-    }
-    if "task" in cfg:
-        legacy_model_cfg["task"] = cfg["task"]
-    if "metrics" in cfg and isinstance(cfg["metrics"], (list, tuple)):
-        legacy_model_cfg["metrics"] = list(cfg["metrics"])
-    return {legacy_model_cfg["name"]: legacy_model_cfg}
+def build_pipeline(model_type: str, params: Dict[str, Any], numeric_cols: Sequence[str], cat_cols: Sequence[str] = None) -> Pipeline:
+    estimator_cls = MODEL_REGISTRY[model_type]
+    # Only numeric features, as one-hot encoding is done in features
+    ct = ColumnTransformer(transformers=[("num", "passthrough", list(numeric_cols))], remainder="drop")
+    steps = [("ct", ct), ("model", estimator_cls(**params))]
+    return Pipeline(steps)
 
 
-def maybe_stratify_labels(y: pd.Series, enabled: bool) -> Optional[pd.Series]:
-    if not enabled:
-        return None
-    value_counts = y.value_counts()
-    if value_counts.empty or value_counts.min() < 2:
-        return None
-    return y
+def rmse(y_true: Iterable[float], y_pred: Iterable[float]) -> float:
+    return float(np.sqrt(mean_squared_error(y_true, y_pred)))
 
 
-def main(args=None):
+def plot_rmse_boxplot(data: List[np.ndarray], labels: List[str], output_path: Path) -> None:
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    plt.figure(figsize=(8, 5))
+    plt.boxplot(data, tick_labels=labels, showmeans=True)
+    plt.ylabel("RMSE")
+    plt.title("RMSE - Modelos")
+    plt.xticks(rotation=10)
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=300, bbox_inches="tight")
+    plt.close()
+
+
+def main(args: Optional[Sequence[str]] = None) -> None:
     parser = argparse.ArgumentParser()
-
-    ## Defining the command line arguments for configuration, input data, and output model artefacts
     parser.add_argument("--cfg", type=str, default="configs/train.yaml")
-    parser.add_argument("--input", type=str, default="data/interim/features.csv")
+    parser.add_argument("--input", type=str, default=None)
     parser.add_argument("--out", type=str, default="artifacts/model.pkl")
+    parser.add_argument("--plots-dir", type=str, default="artifacts/plots")
+    parser.add_argument("--show-plots", action="store_true")
     ns = parser.parse_args(args)
 
     cfg = load_config(ns.cfg)
-    target = cfg.get("target", "Load_Type")
-
-    df = pd.read_csv(ns.input)
+    target = cfg.get("target", DEFAULT_TARGET)
     numeric_cols = cfg.get("numeric_features", DEFAULT_NUMERIC_FEATURES)
-    missing_columns = [col for col in numeric_cols if col not in df.columns]
-    if missing_columns:
-        raise ValueError(f"Missing numeric feature columns: {missing_columns}")
-    X = df[numeric_cols]
-    y = df[target]
+    input_path = cfg.get("input", ns.input or "data/interim/features.csv")
+    df = pd.read_csv(input_path)
+    df.columns = df.columns.str.strip().str.lower()
+    numeric_cols = [c.lower() for c in numeric_cols]
+    target = target.lower()
+    # Only use numeric columns (including dummies from features)
+    X_all = df[numeric_cols].copy()
+    X_all[numeric_cols] = X_all[numeric_cols].apply(pd.to_numeric, errors="coerce")
+    y_all = pd.to_numeric(df[target], errors="coerce")
 
-    ## Apply the errors coerce to convert non-numeric entries to NaN, this helps with data 
-    ## and software engineering issues where data might not be clean
-    X = X.apply(pd.to_numeric, errors='coerce')
-    feature_mask = X.notna().all(axis=1)
-    target_mask = y.notna()
-    base_mask = feature_mask & target_mask
-    X = X.loc[base_mask]
-    y = y.loc[base_mask]
+    mask = X_all[numeric_cols].notna().all(axis=1) & y_all.notna()
+    X = X_all.loc[mask].reset_index(drop=True)
+    y = y_all.loc[mask].reset_index(drop=True)
 
-    ## Normalize the models configuration.
-    models_cfg = normalize_models_config(cfg.get("models"), cfg)
-
-    ## Normalize the metrics configuration.
-    metrics_cfg = cfg.get("metrics", {})
-
-    ## If metrics_cfg is a list or tuple, assume it's for classification task. This is for backward compatibility. 
-    if isinstance(metrics_cfg, (list, tuple)):
-        metrics_cfg = {"classification": list(metrics_cfg)}
-    selection_metrics_cfg = cfg.get("selection_metrics", cfg.get("selection_metric", {}))
-    if isinstance(selection_metrics_cfg, str):
-        selection_metrics_cfg = {
-            "classification": selection_metrics_cfg,
-            "regression": selection_metrics_cfg,
-        }
-
-    ## Define the training parameters.
-    test_size = cfg.get("test_size", 0.2)
+    test_size = cfg.get("test_size", 0.12)
+    val_size = cfg.get("val_size", 0.2)
     random_state = cfg.get("random_state", 42)
-    stratify_enabled = cfg.get("stratify", True)
+    val_random_state = cfg.get("val_random_state", 43)
 
-    ## Containers to hold trained models, their metrics, and metadata.
-    trained_models: Dict[str, Any] = {}
-    model_metrics: Dict[str, Dict[str, float]] = {}
-    model_metadata: Dict[str, Dict[str, Any]] = {}
-    best_models: Dict[str, Dict[str, Any]] = {}
+    # First split off test set
+    X_temp, X_test, y_temp, y_test = train_test_split(
+        X,
+        y,
+        test_size=test_size,
+        shuffle=True,
+        random_state=random_state,
+    )
+    # Then split temp into train and val
+    val_relative_size = val_size / (1 - test_size)
+    X_train, X_val, y_train, y_val = train_test_split(
+        X_temp,
+        y_temp,
+        test_size=val_relative_size,
+        shuffle=True,
+        random_state=val_random_state,
+    )
 
-    ## Iterate over each model configuration, train the model, evaluate it, and store the results.
-    for model_name, model_cfg in models_cfg.items():
+    cv_splits = cfg.get("cv_n_splits", 5)
+    cv_repeats = cfg.get("cv_n_repeats", 3)
+    cv_random_state = cfg.get("cv_random_state", 7)
 
-        estimator_name = model_cfg.get("estimator")
-        if not estimator_name:
-            raise ValueError(f"Model '{model_name}' missing 'estimator' configuration.")
+    cv_strategy = RepeatedKFold(
+        n_splits=cv_splits,
+        n_repeats=cv_repeats,
+        random_state=cv_random_state,
+    )
 
-        ## Using the resolve_estimator function to get the model classes instantiated.
-        estimator_cls, default_task = resolve_estimator(estimator_name)
-        task = model_cfg.get("task") or default_task
-        if task not in METRIC_REGISTRY:
-            raise ValueError(f"Task '{task}' for model '{model_name}' is not supported.")
+    scoring = {
+        "rmse": "neg_root_mean_squared_error",
+        "mae": "neg_mean_absolute_error",
+        "r2": "r2",
+    }
 
-        params = model_cfg.get("params", {})
-        estimator = estimator_cls(**params)
+    model_specs = load_model_specs(cfg)
+    boxplot_data: List[np.ndarray] = []
+    validation_results: List[Dict[str, Any]] = []
+    trained_models: Dict[str, Pipeline] = {}
+    test_metrics: Dict[str, Dict[str, float]] = {}
+    train_metrics: Dict[str, Dict[str, float]] = {}
 
-        if task == "regression":
-            y_prepared = pd.to_numeric(y, errors="coerce")
-            valid_mask = y_prepared.notna()
-            X_model = X.loc[valid_mask]
-            y_model = y_prepared.loc[valid_mask]
-            stratify = None
-        else:
-            y_model = y
-            X_model = X
-            stratify = maybe_stratify_labels(y_model, stratify_enabled)
+    print("Resultados de Validación (CV):")
+    best_model_name: Optional[str] = None
+    best_r2 = -np.inf
 
-        X_train, X_test, y_train, y_test = train_test_split(
-            X_model,
-            y_model,
-            test_size=test_size,
-            random_state=random_state,
-            stratify=stratify,
+    for spec in model_specs:
+        name = spec["name"]
+        pipeline = build_pipeline(spec["type"], spec["params"], numeric_cols)
+
+        scores = cross_validate(
+            pipeline,
+            X_train,
+            y_train,
+            scoring=scoring,
+            cv=cv_strategy,
+            n_jobs=1,
         )
 
-        estimator.fit(X_train, y_train)
-        predictions = estimator.predict(X_test)
+        rmse_scores = -scores["test_rmse"]
+        mae_scores = -scores["test_mae"]
+        r2_scores = scores["test_r2"]
 
-        default_metrics = metrics_cfg.get(task, DEFAULT_METRIC_NAMES[task])
-        metric_names = list(model_cfg.get("metrics", default_metrics))
+        boxplot_data.append(rmse_scores)
 
-        selection_metric_name = model_cfg.get("selection_metric") or selection_metrics_cfg.get(task)
-        if selection_metric_name:
-            if selection_metric_name not in METRIC_REGISTRY[task]:
-                raise ValueError(
-                    f"Selection metric '{selection_metric_name}' is not supported for task '{task}'."
-                )
-            if selection_metric_name not in metric_names:
-                metric_names.append(selection_metric_name)
+        mean_rmse = float(np.mean(rmse_scores))
+        std_rmse = float(np.std(rmse_scores, ddof=1))
+        mean_r2 = float(np.mean(r2_scores))
+        std_r2 = float(np.std(r2_scores, ddof=1))
 
-        metrics_result: Dict[str, float] = {}
-        for metric_name in metric_names:
-            if metric_name not in METRIC_REGISTRY[task]:
-                raise ValueError(f"Metric '{metric_name}' is not defined for task '{task}'.")
-            metric_func = METRIC_REGISTRY[task][metric_name]["func"]
-            metrics_result[metric_name] = metric_func(y_test, predictions)
+        print(name)
+        print("RMSE: >> %.3f (%.3f)" % (mean_rmse, std_rmse))
+        print("R2:   >> %.3f (%.3f)" % (mean_r2, std_r2))
+        print()
 
-        trained_models[model_name] = estimator
-        model_metrics[model_name] = metrics_result
-        model_metadata[model_name] = {"task": task, "estimator": estimator_name}
+        fitted_pipeline = build_pipeline(spec["type"], spec["params"], numeric_cols)
+        fitted_pipeline.fit(X_train, y_train)
+        trained_models[name] = fitted_pipeline
 
-        if selection_metric_name:
-            metric_value = metrics_result[selection_metric_name]
-            spec = METRIC_REGISTRY[task][selection_metric_name]
-            current_best = best_models.get(task)
-            if not current_best:
-                best_models[task] = {
-                    "name": model_name,
-                    "value": metric_value,
-                    "greater_is_better": spec["greater_is_better"],
-                }
-            else:
-                is_better = (
-                    metric_value > current_best["value"]
-                    if spec["greater_is_better"]
-                    else metric_value < current_best["value"]
-                )
-                if is_better:
-                    best_models[task].update({"name": model_name, "value": metric_value})
+        # Train metrics
+        y_train_pred = fitted_pipeline.predict(X_train)
+        train_metrics[name] = {
+            "rmse": rmse(y_train, y_train_pred),
+            "mae": float(mean_absolute_error(y_train, y_train_pred)),
+            "r2": float(r2_score(y_train, y_train_pred)),
+        }
 
-        print(f"Model '{model_name}' ({task}) metrics:")
-        for metric_name, metric_value in metrics_result.items():
-            print(f"  - {metric_name}: {metric_value:.4f}")
+        # Test metrics
+        y_test_pred = fitted_pipeline.predict(X_test)
+        test_metrics[name] = {
+            "rmse": rmse(y_test, y_test_pred),
+            "mae": float(mean_absolute_error(y_test, y_test_pred)),
+            "r2": float(r2_score(y_test, y_test_pred)),
+        }
 
-    best_overall = best_models.get("classification") or best_models.get("regression")
-    best_model_name = best_overall["name"] if best_overall else None
-    if best_model_name:
-        print(f"Selected best model: {best_model_name}")
+        validation_results.append(
+            {
+                "name": name,
+                "cv_rmse_scores": rmse_scores.tolist(),
+                "cv_mae_scores": mae_scores.tolist(),
+                "cv_r2_scores": r2_scores.tolist(),
+                "cv_rmse_mean": mean_rmse,
+                "cv_rmse_std": std_rmse,
+                "cv_r2_mean": mean_r2,
+                "cv_r2_std": std_r2,
+            }
+        )
 
-    output_payload = {
-        "models": trained_models,
-        "metrics": model_metrics,
-        "metadata": model_metadata,
+        if mean_r2 > best_r2:
+            best_r2 = mean_r2
+            best_model_name = name
+
+    if best_model_name is None:
+        raise RuntimeError("No se entrenó ningún modelo correctamente.")
+
+    plots_dir = Path(ns.plots_dir)
+    plot_rmse_boxplot(boxplot_data, [spec["name"] for spec in model_specs], plots_dir / "rmse_boxplot.png")
+
+    # Save splits to disk for evaluation
+    split_dir = Path("artifacts/splits")
+    split_dir.mkdir(parents=True, exist_ok=True)
+    train_split_path = split_dir / "train.csv"
+    test_split_path = split_dir / "test.csv"
+    val_split_path = split_dir / "val.csv"
+
+    train_df = X_train.copy()
+    train_df[target] = y_train
+    train_df.to_csv(train_split_path, index=False)
+
+    test_df = X_test.copy()
+    test_df[target] = y_test
+    test_df.to_csv(test_split_path, index=False)
+
+    val_df = X_val.copy()
+    val_df[target] = y_val
+    val_df.to_csv(val_split_path, index=False)
+
+    split_paths = {
+        "train": str(train_split_path),
+        "test": str(test_split_path),
+        "val": str(val_split_path),
+    }
+
+    payload = {
         "best_model": best_model_name,
+        "models": trained_models,
+        "validation_results": validation_results,
+        "test_metrics": test_metrics,
+        "metrics": {name: {"train": train_metrics[name], "test": test_metrics[name]} for name in trained_models},
+        "split_paths": split_paths,
+        "config": {
+            "target": target,
+            "numeric_features": numeric_cols,
+            "test_size": test_size,
+            "random_state": random_state,
+            "cv_n_splits": cv_splits,
+            "cv_n_repeats": cv_repeats,
+            "cv_random_state": cv_random_state,
+        },
     }
 
     Path(ns.out).parent.mkdir(parents=True, exist_ok=True)
-    joblib.dump(output_payload, ns.out)
-    print(f"Model artefacts saved to {ns.out}")
+    joblib.dump(payload, ns.out)
+
+    print(f"Mejor modelo seleccionado (según R2 en validación): {best_model_name}")
+    print("Métricas en el conjunto de prueba:")
+    for name, metrics in test_metrics.items():
+        print(f"- {name}: RMSE={metrics['rmse']:.3f}, MAE={metrics['mae']:.3f}, R2={metrics['r2']:.3f}")
+
 
 if __name__ == "__main__":
     main()
