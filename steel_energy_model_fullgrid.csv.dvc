@@ -1,0 +1,5 @@
+outs:
+- md5: 48b0c4fda154569c6714967b3faa29b6
+  size: 4323800
+  hash: md5
+  path: steel_energy_model_fullgrid.csv
