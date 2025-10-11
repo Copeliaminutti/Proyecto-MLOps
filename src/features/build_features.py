@@ -17,10 +17,13 @@ def build(df: pd.DataFrame, cfg: dict) -> pd.DataFrame:
 
     # One-hot encoding
     if cfg.get('one_hot', False) and cat_cols:
-        df = pd.get_dummies(df, columns=cat_cols, drop_first=False)
-        # After encoding, update num_cols to include new dummies
-        new_cols = [col for col in df.columns if col != target]
-        num_cols = [col for col in new_cols if col != target]
+        # Only use categorical columns that exist in the DataFrame
+        cat_cols_existing = [c for c in cat_cols if c in df.columns]
+        if cat_cols_existing:
+            df = pd.get_dummies(df, columns=cat_cols_existing, drop_first=False)
+            # After encoding, update num_cols to include new dummies
+            new_cols = [col for col in df.columns if col != target]
+            num_cols = [col for col in new_cols if col != target]
 
     return df
 

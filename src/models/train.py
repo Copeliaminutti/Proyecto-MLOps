@@ -37,6 +37,7 @@ MODEL_TYPE_ALIASES = {
     "linear_regression": "linear_regression",
     "linear": "linear_regression",
     "lr": "linear_regression",
+    
     "ridge": "ridge",
     "regression_ridge": "ridge",
     "regresion_ridge": "ridge",

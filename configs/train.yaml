@@ -1,4 +1,4 @@
-input: steel_energy_model_fullgrid.csv
+input: data/raw/steel_energy_model_fullgrid.csv
 target: usage_kwh
 numeric_features:
   - lagging_current_reactive_power_kvarh

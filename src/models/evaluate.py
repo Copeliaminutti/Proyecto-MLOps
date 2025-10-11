@@ -138,6 +138,7 @@ def main(args: Optional[Any] = None) -> None:
     report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
 
     print("Evaluación (val) del mejor modelo:")
+    
     print(f"  RMSE: {val_metrics['rmse']:.3f}")
     print(f"  MAE : {val_metrics['mae']:.3f}")
     print(f"  R2  : {val_metrics['r2']:.3f}")
@@ -146,7 +147,6 @@ def main(args: Optional[Any] = None) -> None:
     print(f"  MAE : {test_metrics['mae']:.3f}")
     print(f"  R2  : {test_metrics['r2']:.3f}")
     print(f"\nReporte guardado en: {report_path}")
-
 
 if __name__ == "__main__":
     main()
