@@ -1,4 +1,4 @@
 [core]
     remote = storage
 ['remote "storage"']
-    url = gdrive://1d8t_WuIRe3qKk87at7uqHDM4iNPkHlRB
+    url = /content/drive/MyDrive/Proyecto-MLOps-DVC
