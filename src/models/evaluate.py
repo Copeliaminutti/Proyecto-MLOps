@@ -69,7 +69,6 @@ def load_split(path_str: str, target: str) -> Dict[str, Any]:
     X = split_df.drop(columns=[target])
     return {"X": X, "y": y}
 
-
 def main(args: Optional[Any] = None) -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--model-artifact", type=str, default="artifacts/model.pkl")
@@ -138,7 +137,7 @@ def main(args: Optional[Any] = None) -> None:
     report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
 
     print("Evaluación (val) del mejor modelo:")
-    
+
     print(f"  RMSE: {val_metrics['rmse']:.3f}")
     print(f"  MAE : {val_metrics['mae']:.3f}")
     print(f"  R2  : {val_metrics['r2']:.3f}")

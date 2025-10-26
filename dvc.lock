@@ -5,7 +5,7 @@ stages:
     deps:
     - path: configs/eda.yaml
       hash: md5
-      md5: 2c81d3962ba2d96eaff6a68ee8cbff64
+      md5: 125f8707018daf4165b80078bdaf0fb6
       size: 70
     - path: data/raw
       hash: md5
@@ -36,8 +36,8 @@ stages:
       nfiles: 1
     - path: src/features/build_features.py
       hash: md5
-      md5: 8bbc174a48a7eb07a6c2315666ad79f9
-      size: 1942
+      md5: b9b81cf6f070b670c2fa87a04411a46c
+      size: 1897
     outs:
     - path: data/interim
       hash: md5
@@ -49,8 +49,8 @@ stages:
     deps:
     - path: configs/train.yaml
       hash: md5
-      md5: e7ea79a48a8e27cc8bd59ef32291cd51
-      size: 1057
+      md5: 4c4b4e510db017d8d63bfc814eb1bab3
+      size: 1056
     - path: data/interim
       hash: md5
       md5: fbec5a79548e874f4d3e0f11808346ae.dir
@@ -58,24 +58,24 @@ stages:
       nfiles: 1
     - path: src/models/train.py
       hash: md5
-      md5: 54392dcf1bbcb528759a0845e9a880d1
-      size: 12969
+      md5: 861d0b7ce31cec7d1ffd4fa6eded0a31
+      size: 13545
     outs:
     - path: artifacts/model.pkl
       hash: md5
-      md5: 742805e6b303db5289483961c934a239
-      size: 2291854
+      md5: d1682d882ac07bee5712aa73b0f32ac9
+      size: 2292666
   evaluate:
     cmd: python3 src/models/evaluate.py
     deps:
     - path: artifacts/model.pkl
       hash: md5
-      md5: 742805e6b303db5289483961c934a239
-      size: 2291854
+      md5: d1682d882ac07bee5712aa73b0f32ac9
+      size: 2292666
     - path: configs/train.yaml
       hash: md5
-      md5: e7ea79a48a8e27cc8bd59ef32291cd51
-      size: 1057
+      md5: 4c4b4e510db017d8d63bfc814eb1bab3
+      size: 1056
     - path: data/interim
       hash: md5
       md5: fbec5a79548e874f4d3e0f11808346ae.dir
@@ -83,15 +83,15 @@ stages:
       nfiles: 1
     - path: src/models/evaluate.py
       hash: md5
-      md5: 775a6dc53534a2ed66de1c81ac85e3aa
-      size: 5153
+      md5: c15f4ab12c5df266dd17b628de92a619
+      size: 5148
     outs:
     - path: artifacts/eval/metrics.json
       hash: md5
-      md5: 511e174023d4ebff15ffd19880dff5c5
-      size: 1941
+      md5: 997deddd0033f6c2521dba4fc00cb456
+      size: 1945
     - path: artifacts/eval/plots
       hash: md5
-      md5: 1e527757c73e9e7d0a3a0d018415bb40.dir
-      size: 626147
+      md5: 19e4e17eb824b18f803a39b6d6ac73b1.dir
+      size: 628594
       nfiles: 4

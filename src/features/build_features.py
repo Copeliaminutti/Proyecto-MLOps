@@ -9,7 +9,6 @@ def build(df: pd.DataFrame, cfg: dict) -> pd.DataFrame:
         df = df.drop(columns=['date'])
     # Standardize column names
     df.columns = df.columns.str.strip().str.lower()
-    # Remove date/time columns from features
     date_keywords = ['date', 'fecha', 'time', 'timestamp', 'hour', 'minute', 'second']
     num_cols = [c.lower() for c in cfg.get('numeric_features', []) if not any(k in c.lower() for k in date_keywords)]
     cat_cols = [c.lower() for c in cfg.get('categorical_features', []) if not any(k in c.lower() for k in date_keywords)]

@@ -14,3 +14,4 @@ categorical_features:
   - day_of_week
   - load_type
 target: usage_kwh
+

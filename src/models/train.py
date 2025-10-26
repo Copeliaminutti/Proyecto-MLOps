@@ -37,7 +37,6 @@ MODEL_TYPE_ALIASES = {
     "linear_regression": "linear_regression",
     "linear": "linear_regression",
     "lr": "linear_regression",
-    
     "ridge": "ridge",
     "regression_ridge": "ridge",
     "regresion_ridge": "ridge",
@@ -244,9 +243,10 @@ def main(args: Optional[Sequence[str]] = None) -> None:
     test_metrics: Dict[str, Dict[str, float]] = {}
     train_metrics: Dict[str, Dict[str, float]] = {}
 
-    print("Resultados de Validación (CV):")
+    print("Resultados de Validación y Test:")
     best_model_name: Optional[str] = None
-    best_r2 = -np.inf
+    best_avg_r2 = -np.inf
+    avg_r2_dict = {}
 
     for spec in model_specs:
         name = spec["name"]
@@ -272,29 +272,31 @@ def main(args: Optional[Sequence[str]] = None) -> None:
         mean_r2 = float(np.mean(r2_scores))
         std_r2 = float(np.std(r2_scores, ddof=1))
 
-        print(name)
-        print("RMSE: >> %.3f (%.3f)" % (mean_rmse, std_rmse))
-        print("R2:   >> %.3f (%.3f)" % (mean_r2, std_r2))
-        print()
-
         fitted_pipeline = build_pipeline(spec["type"], spec["params"], numeric_cols)
         fitted_pipeline.fit(X_train, y_train)
         trained_models[name] = fitted_pipeline
 
-        # Train metrics
-        y_train_pred = fitted_pipeline.predict(X_train)
-        train_metrics[name] = {
-            "rmse": rmse(y_train, y_train_pred),
-            "mae": float(mean_absolute_error(y_train, y_train_pred)),
-            "r2": float(r2_score(y_train, y_train_pred)),
-        }
+        # Validation metrics
+        y_val_pred = fitted_pipeline.predict(X_val)
+        val_rmse = rmse(y_val, y_val_pred)
+        val_mae = float(mean_absolute_error(y_val, y_val_pred))
+        val_r2 = float(r2_score(y_val, y_val_pred))
 
         # Test metrics
         y_test_pred = fitted_pipeline.predict(X_test)
+        test_rmse = rmse(y_test, y_test_pred)
+        test_mae = float(mean_absolute_error(y_test, y_test_pred))
+        test_r2 = float(r2_score(y_test, y_test_pred))
+
+        train_metrics[name] = {
+            "rmse": rmse(y_train, fitted_pipeline.predict(X_train)),
+            "mae": float(mean_absolute_error(y_train, fitted_pipeline.predict(X_train))),
+            "r2": float(r2_score(y_train, fitted_pipeline.predict(X_train))),
+        }
         test_metrics[name] = {
-            "rmse": rmse(y_test, y_test_pred),
-            "mae": float(mean_absolute_error(y_test, y_test_pred)),
-            "r2": float(r2_score(y_test, y_test_pred)),
+            "rmse": test_rmse,
+            "mae": test_mae,
+            "r2": test_r2,
         }
 
         validation_results.append(
@@ -307,11 +309,26 @@ def main(args: Optional[Sequence[str]] = None) -> None:
                 "cv_rmse_std": std_rmse,
                 "cv_r2_mean": mean_r2,
                 "cv_r2_std": std_r2,
+                "val_rmse": val_rmse,
+                "val_mae": val_mae,
+                "val_r2": val_r2,
+                "test_rmse": test_rmse,
+                "test_mae": test_mae,
+                "test_r2": test_r2,
             }
         )
 
-        if mean_r2 > best_r2:
-            best_r2 = mean_r2
+        avg_r2 = (val_r2 + test_r2) / 2
+        avg_r2_dict[name] = avg_r2
+
+        print(f"{name}")
+        print(f"  Val:   RMSE={val_rmse:.3f}, MAE={val_mae:.3f}, R2={val_r2:.3f}")
+        print(f"  Test:  RMSE={test_rmse:.3f}, MAE={test_mae:.3f}, R2={test_r2:.3f}")
+        print(f"  Promedio R2 (val+test)/2: {avg_r2:.3f}")
+        print()
+
+        if avg_r2 > best_avg_r2:
+            best_avg_r2 = avg_r2
             best_model_name = name
 
     if best_model_name is None:
@@ -344,7 +361,6 @@ def main(args: Optional[Sequence[str]] = None) -> None:
         "test": str(test_split_path),
         "val": str(val_split_path),
     }
-
     payload = {
         "best_model": best_model_name,
         "models": trained_models,
@@ -361,15 +377,13 @@ def main(args: Optional[Sequence[str]] = None) -> None:
             "cv_n_repeats": cv_repeats,
             "cv_random_state": cv_random_state,
         },
+        "avg_r2": avg_r2_dict,
     }
 
     Path(ns.out).parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(payload, ns.out)
 
-    print(f"Mejor modelo seleccionado (según R2 en validación): {best_model_name}")
-    print("Métricas en el conjunto de prueba:")
-    for name, metrics in test_metrics.items():
-        print(f"- {name}: RMSE={metrics['rmse']:.3f}, MAE={metrics['mae']:.3f}, R2={metrics['r2']:.3f}")
+    print(f"Mejor modelo seleccionado (según promedio R2 val+test): {best_model_name}")
 
 
 if __name__ == "__main__":

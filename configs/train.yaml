@@ -20,14 +20,12 @@ models:
       alpha: 1.0
       fit_intercept: true
       random_state: 42
-
   LinearRegression:
     type: linear_regression
     params:     
       fit_intercept: true
       copy_X: true
       n_jobs: 1
-
   kNN:
     type: knn
     params:
@@ -55,3 +53,4 @@ test_size: 0.12
 val_size: 0.2
 random_state: 42
 val_random_state: 43
+
