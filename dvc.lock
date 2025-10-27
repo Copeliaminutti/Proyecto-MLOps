@@ -27,8 +27,8 @@ stages:
     deps:
     - path: configs/features.yaml
       hash: md5
-      md5: 9efadd938c5e7fad341acfad5777d210
-      size: 372
+      md5: ad8fc5e643ad4a86e3de9bb7edbb753a
+      size: 373
     - path: data/processed
       hash: md5
       md5: c345e2477abbb49a4e785788abdecb0d.dir
@@ -58,20 +58,20 @@ stages:
       nfiles: 1
     - path: src/models/train.py
       hash: md5
-      md5: 861d0b7ce31cec7d1ffd4fa6eded0a31
-      size: 13545
+      md5: 994b2fc491d1405c59ec8038f54197cb
+      size: 13546
     outs:
     - path: artifacts/model.pkl
       hash: md5
-      md5: d1682d882ac07bee5712aa73b0f32ac9
-      size: 2292666
+      md5: e3ad2334051698a9b691824c09245857
+      size: 2292378
   evaluate:
     cmd: python3 src/models/evaluate.py
     deps:
     - path: artifacts/model.pkl
       hash: md5
-      md5: d1682d882ac07bee5712aa73b0f32ac9
-      size: 2292666
+      md5: e3ad2334051698a9b691824c09245857
+      size: 2292378
     - path: configs/train.yaml
       hash: md5
       md5: 4c4b4e510db017d8d63bfc814eb1bab3
@@ -88,10 +88,10 @@ stages:
     outs:
     - path: artifacts/eval/metrics.json
       hash: md5
-      md5: 997deddd0033f6c2521dba4fc00cb456
-      size: 1945
+      md5: d8a660d7fa4fe9846c3f58ef8e209ec3
+      size: 1947
     - path: artifacts/eval/plots
       hash: md5
-      md5: 19e4e17eb824b18f803a39b6d6ac73b1.dir
-      size: 628594
+      md5: 0b47408cd24f1f96d56ed80ef38cc493.dir
+      size: 619000
       nfiles: 4
