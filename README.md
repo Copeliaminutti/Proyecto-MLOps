@@ -1,9 +1,8 @@
 # Proyecto MLOps
 
-Monorepo del proyecto de ML de punta a punta (EDA → features → entrenamiento → evaluación → despliegue → monitoreo).
+Este proyecto sigue la estructura estandarizada de Cookiecutter Data Science (CCDS) y aplica las mejores prácticas de MLOps para garantizar escalabilidad, trazabilidad y reproducibilidad del ciclo de vida de Machine Learning.
 
 ## Estructura
-```
 proyecto-mlops/
 ├─ README.md
 ├─ .gitignore
@@ -12,29 +11,57 @@ proyecto-mlops/
 ├─ environment.yml
 ├─ Makefile
 ├─ dvc.yaml
-├─ notebooks/
+├─ notebooks/                  # Análisis exploratorio y pruebas experimentales
 ├─ src/
-├─ configs/
-├─ tests/
-├─ data/              # versionar con DVC/LFS 
-└─ .github/workflows/
+│  └─ proyecto_mlops/
+│     ├─ data/                 # Scripts de limpieza y preparación de datos
+│     ├─ features/             # Ingeniería y construcción de características
+│     ├─ modelling/            # Entrenamiento y evaluación de modelos
+│     ├─ models/               # Artefactos del modelo entrenado (.pkl)
+│     ├─ serving/              # API o despliegue del modelo
+│     ├─ utils/                # Funciones auxiliares y rutas comunes
+│     └─ visualization/        # Gráficos y reportes automáticos
+├─ configs/                    # Archivos YAML con parámetros y configuraciones
+├─ tests/                      # Pruebas unitarias y validaciones
+├─ data/                       # Datasets (versionados con DVC)
+│   ├─ raw/                    # Datos originales
+│   ├─ processed/              # Datos limpios
+│   └─ interim/                # Datos intermedios para modelado
+└─ .github/workflows/          # Automatizaciones (CI/CD)
+
 ```
 
 ```bash
 
 ## Flujo de trabajo
-- Ramas: `main` (estable), `dev` (integración) y ramas por feature: `feat/eda`, `feat/features`, `feat/train`, etc.
-- Pull Request con revisión cruzada y descripción de rol + resultados.
-- Artefactos y datasets versionados con DVC.
+l flujo de trabajo está definido en dvc.yaml, donde cada etapa se ejecuta de forma modular:
+
+EDA / Limpieza → src/proyecto_mlops/data/clean.py
+
+Features → src/proyecto_mlops/features/build_features.py
+
+Entrenamiento → src/proyecto_mlops/modelling/train.py
+
+Evaluación → src/proyecto_mlops/modelling/evaluate.py
+
+Cada etapa genera sus salidas (data/processed/, data/interim/, artifacts/model.pkl, etc.), y el flujo puede ejecutarse automáticamente con:
+dvc repro
+# o desde Python
+python src/proyecto_mlops/main.py
+
 
 ## Fases 
-1. EDA → `notebooks/00_eda.ipynb` + `src/data/*`
-2. Features → `src/features/*`
-3. Entrenamiento → `src/models/train.py`
-4. Evaluación → `src/models/evaluate.py`
-5. Despliegue → `src/serving/*`
-6. Monitoreo → `src/serving/monitoring/*` 
+EDA → notebooks/00_eda.ipynb + src/proyecto_mlops/data/*
 
+Features → src/proyecto_mlops/features/*
+
+Entrenamiento → src/proyecto_mlops/modelling/train.py
+
+Evaluación → src/proyecto_mlops/modelling/evaluate.py
+
+Despliegue → src/proyecto_mlops/serving/*
+
+Monitoreo → src/proyecto_mlops/serving/monitoring/*
 ---
 
 ## 01. Estructura Cookiecutter (Fase 2)
