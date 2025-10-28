@@ -7,6 +7,7 @@ stages:
       - data/raw
     outs:
       - data/processed
+
   features:
     cmd: python src/proyecto_mlops/features/build_features.py --cfg configs/features.yaml
     deps:
@@ -15,6 +16,7 @@ stages:
       - data/processed
     outs:
       - data/interim
+
   train:
     cmd: python src/proyecto_mlops/modelling/train.py --cfg configs/train.yaml
     deps:
@@ -23,3 +25,6 @@ stages:
       - data/interim
     outs:
       - artifacts/model.pkl
+    metrics:
+      - reports/metrics.json:
+          cache: false
