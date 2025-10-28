@@ -1,10 +1,6 @@
-from proyecto_mlops.features import run_features
-from proyecto_mlops.modelling.train import run_train
+"""
+Paquete base de proyecto_mlops.
+No realices imports pesados aquí para evitar ciclos y fallos de import.
+"""
 
-def main_pipeline():
-	# 1. Ejecutar features y obtener el DataFrame procesado
-	df_feat = run_features(input_path="src/data/processed/clean.csv")
-	run_train(df_feat)
-
-if __name__ == "__main__":
-	main_pipeline()
+__all__ = ["config", "data", "features", "modelling", "models", "serving", "utils", "visualization"]
