@@ -149,3 +149,13 @@ def main(args: Optional[Any] = None) -> None:
 
 if __name__ == "__main__":
     main()
+
+# --- Compatibilidad: API programática ---------------------------------
+def evaluate(*args, **kwargs):
+    """Wrapper para usar este módulo desde Python (sin CLI).
+    Equivalente a ejecutar `main()` sin argumentos desde código.
+    """
+    return main([])
+
+if __name__ == "__main__":
+    main()
