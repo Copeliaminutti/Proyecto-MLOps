@@ -12,3 +12,4 @@ pre-commit
 fastapi
 uvicorn
 joblib
+mlflow

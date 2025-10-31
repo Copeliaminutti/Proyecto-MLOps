@@ -24,7 +24,7 @@ stages:
       - configs/train.yaml
       - data/interim
     outs:
-      - artifacts/model.pkl
+      - src/proyecto_mlops/models/best_model.pkl
     metrics:
       - reports/metrics.json:
           cache: false
@@ -33,6 +33,6 @@ stages:
     cmd: python src/proyecto_mlops/visualization/plots.py
     deps:
       - src/proyecto_mlops/visualization/plots.py
-      - artifacts/model.pkl
+      - src/proyecto_mlops/models/best_model.pkl
     outs:
       - reports/figures
