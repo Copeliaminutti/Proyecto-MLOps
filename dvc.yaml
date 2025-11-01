@@ -1,38 +1,38 @@
 stages:
-  # eda_clean:
-  #   cmd: python src/proyecto_mlops/data/clean.py --cfg configs/eda.yaml
-  #   deps:
-  #     - src/proyecto_mlops/data/clean.py
-  #     - configs/eda.yaml
-  #     - data/raw
-  #   outs:
-  #     - data/processed
+  data_cleaning:
+    cmd: python src/data_cleaning/clean.py --cfg configs/eda.yaml
+    deps:
+      - src/data_cleaning/clean.py
+      - configs/eda.yaml
+      - data/raw
+    outs:
+      - data/processed
 
   features:
-    cmd: PYTHONPATH=src python src/proyecto_mlops/features.py
+    cmd: PYTHONPATH=src python3 src/features.py
     deps:
-      - src/proyecto_mlops/features.py
+      - src/features.py
       - configs/features.yaml
-      - src/proyecto_mlops/data/processed/clean.csv
+      - data/processed/clean.csv
     outs:
       - data/interim
 
   train:
-    cmd: PYTHONPATH=src python src/proyecto_mlops/modelling/train.py --cfg configs/train.yaml
+    cmd: PYTHONPATH=src python src/modelling/train.py --cfg configs/train.yaml
     deps:
-      - src/proyecto_mlops/modelling/train.py
+      - src/modelling/train.py
       - configs/train.yaml
       - data/interim
     outs:
-      - src/proyecto_mlops/models/best_model.pkl
+      - models/best_model.pkl
     metrics:
       - reports/metrics.json:
           cache: false
 
-  evaluate:
-    cmd: python src/proyecto_mlops/visualization/plots.py
+  graphic_analysis:
+    cmd: python src/visualization/plots.py
     deps:
-      - src/proyecto_mlops/visualization/plots.py
-      - src/proyecto_mlops/models/best_model.pkl
+      - src/visualization/plots.py
+      - models/best_model.pkl
     outs:
       - reports/figures

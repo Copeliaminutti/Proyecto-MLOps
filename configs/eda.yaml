@@ -1,3 +1,14 @@
+# Rutas de entrada y salida
+input_path: data/raw/steel_energy_clean_fullgrid.csv
+output_path: data/processed/clean.csv
+
+# Estrategia de duplicados
+dup_strategy: first
+
+# Generar grilla completa (opcional)
+create_fullgrid: false
+
+# Configuración de limpieza
 drop_na: true
 duplicates: true
 outliers:
