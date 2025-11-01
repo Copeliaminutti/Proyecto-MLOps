@@ -1,0 +1,66 @@
+schema: '2.0'
+stages:
+  features:
+    cmd: PYTHONPATH=src python src/proyecto_mlops/features.py
+    deps:
+    - path: configs/features.yaml
+      hash: md5
+      md5: d5dbd0194030d06b0a8fb00b6a3cad50
+      size: 32
+    - path: src/proyecto_mlops/data/processed/clean.csv
+      hash: md5
+      md5: 48b0c4fda154569c6714967b3faa29b6
+      size: 4323800
+    - path: src/proyecto_mlops/features.py
+      hash: md5
+      md5: e1d6b1c351b9e155510ab7f0c4388757
+      size: 3407
+    outs:
+    - path: data/interim
+      hash: md5
+      md5: 35f14e641b7abbe12bf9fa3054cba562.dir
+      size: 10197096
+      nfiles: 1
+  train:
+    cmd: PYTHONPATH=src python src/proyecto_mlops/modelling/train.py --cfg 
+      configs/train.yaml
+    deps:
+    - path: configs/train.yaml
+      hash: md5
+      md5: 80b0d00e2894c1f36c1df99e62fd2306
+      size: 92
+    - path: data/interim
+      hash: md5
+      md5: 35f14e641b7abbe12bf9fa3054cba562.dir
+      size: 10197096
+      nfiles: 1
+    - path: src/proyecto_mlops/modelling/train.py
+      hash: md5
+      md5: 71ebb8bab83a2492145eabcf51c4aa7d
+      size: 20261
+    outs:
+    - path: reports/metrics.json
+      hash: md5
+      md5: 46ae355219171675634b965a83dcdcca
+      size: 2044
+    - path: src/proyecto_mlops/models/best_model.pkl
+      hash: md5
+      md5: 42243ff91cad0d401a601bddc3b1f5f7
+      size: 9474612
+  evaluate:
+    cmd: python src/proyecto_mlops/visualization/plots.py
+    deps:
+    - path: src/proyecto_mlops/models/best_model.pkl
+      hash: md5
+      md5: 42243ff91cad0d401a601bddc3b1f5f7
+      size: 9474612
+    - path: src/proyecto_mlops/visualization/plots.py
+      hash: md5
+      md5: 028d57ed5757d730cbf1ce69cb4a0302
+      size: 10481
+    outs:
+    - path: reports/figures
+      hash: md5
+      md5: cc80296365470b1962875f3b5ce3c480.dir
+      size: 641035
+      nfiles: 4

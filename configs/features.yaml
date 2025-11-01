@@ -1,2 +1,20 @@
 scaling: standard
 one_hot: true
+
+input: data/raw/steel_energy_model_fullgrid.csv
+
+numeric_features:
+  - lagging_current_reactive_power_kvarh
+  - leading_current_reactive_power_kvarh
+  - co2_tco2
+  - lagging_current_power_factor
+  - leading_current_power_factor
+  - nsm
+  - mixed_type_col
+
+categorical_features:
+  - week_status
+  - day_of_week
+  - load_type
+
+target: usage_kwh

@@ -1,7 +1,7 @@
 import argparse
 import pandas as pd
 from pathlib import Path
-from .config import CONFIGS
+from proyecto_mlops.config import load_config
 
 def build(df: pd.DataFrame, cfg: dict) -> pd.DataFrame:
     # Remove 'date' column explicitly if present
@@ -61,7 +61,7 @@ def build(df: pd.DataFrame, cfg: dict) -> pd.DataFrame:
 
 def main(args=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input", type=str, default="data/processed/clean.csv")
+    parser.add_argument("--input", type=str, default="src/proyecto_mlops/data/processed/clean.csv")
     parser.add_argument("--output", type=str, default="data/interim/features.csv")
     ns = parser.parse_args(args)
 
@@ -69,7 +69,7 @@ def main(args=None):
     print(f"Guardado: {ns.output} -> filas: {len(df_feat)}")
 
 def run_features(input_path: str, output_path: str = None) -> pd.DataFrame:
-    cfg = CONFIGS["features"]
+    cfg = load_config("features.yaml")
     df = pd.read_csv(input_path)
     df_feat = build(df, cfg)
     if output_path:
