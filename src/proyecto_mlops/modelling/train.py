@@ -17,7 +17,7 @@ import pandas as pd
 import mlflow
 import mlflow.sklearn
 from mlflow.models.signature import infer_signature
-from proyecto_mlops.config import load_config, CONFIGS
+from proyecto_mlops.config import load_config
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import RepeatedKFold, cross_validate, train_test_split
@@ -246,9 +246,9 @@ class ModelTrainer:
     def load_configuration(self):
         """Carga la configuración desde el archivo YAML."""
         self.cfg = load_config(self.cfg_path)
+        
         if "models" not in self.cfg or not self.cfg["models"]:
-            print("[INFO] No se encontraron modelos en el YAML, usando modelos de config.py (CONFIGS['train'])")
-            self.cfg["models"] = CONFIGS["train"]["models"]
+            raise ValueError("No se encontraron modelos en train.yaml. Asegúrate de definir el campo 'models'.")
         
         # Inicializar componentes
         self.data_splitter = DataSplitter(
