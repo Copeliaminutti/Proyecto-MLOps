@@ -35,17 +35,17 @@ stages:
       nfiles: 1
     - path: src/modelling/train.py
       hash: md5
-      md5: 45b2e86a5a224426155a2bd0a9c64242
-      size: 20170
+      md5: 65c8248ff3c749cd5ab765396f88df2a
+      size: 20184
     outs:
     - path: models/best_model.pkl
       hash: md5
-      md5: e657c2fe25bbb563282ad305866647cd
+      md5: cd252d6797f80c00ddd8e092c58a439e
       size: 8927828
     - path: reports/metrics.json
       hash: md5
-      md5: e5f60d2e19db532b8087f92a863d1690
-      size: 2038
+      md5: 3a208cd516687378d52224a953f24128
+      size: 2039
   evaluate:
     cmd: python src/visualization/plots.py
     deps:
@@ -129,7 +129,7 @@ stages:
     deps:
     - path: models/best_model.pkl
       hash: md5
-      md5: e657c2fe25bbb563282ad305866647cd
+      md5: cd252d6797f80c00ddd8e092c58a439e
       size: 8927828
     - path: src/visualization/plots.py
       hash: md5
@@ -138,6 +138,6 @@ stages:
     outs:
     - path: reports/figures
       hash: md5
-      md5: 8c8a58f552464380ff8f16638bca19ad.dir
-      size: 662203
+      md5: de3a8a90b6e46a31fa4368445b771b19.dir
+      size: 652834
       nfiles: 4
