@@ -1,2 +1,6 @@
 [core]
     no_scm = True
+    remote = team_remote
+['remote "team_remote"']
+    url = s3://itesm-mna/202502-equipo49
+    region = us-east-2
