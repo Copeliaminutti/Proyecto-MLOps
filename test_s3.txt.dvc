@@ -1,0 +1,5 @@
+outs:
+- md5: 508feaa606ba78b67c2b9c56d507e0b6
+  size: 36
+  hash: md5
+  path: test_s3.txt
