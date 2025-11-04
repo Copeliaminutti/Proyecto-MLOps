@@ -1,0 +1,21 @@
+cmd: python src/data_cleaning/clean.py --cfg configs/eda.yaml
+deps:
+- path: configs/eda.yaml
+  hash: md5
+  md5: c3f5e047ce19a6b510c34ee795f2ea77
+  size: 327
+- path: data/raw
+  hash: md5
+  md5: d79c492da907ed55f23b545a48bb6a3d.dir
+  size: 3157634
+  nfiles: 1
+- path: src/data_cleaning/clean.py
+  hash: md5
+  md5: a830e8a799ec210a16ed201b2fc5d3ec
+  size: 27153
+outs:
+- path: data/processed
+  hash: md5
+  md5: b30d00ce726ada257d94d82029c247b8.dir
+  size: 4129729
+  nfiles: 1

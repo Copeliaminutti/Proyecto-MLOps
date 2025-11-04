@@ -1,30 +1,38 @@
 stages:
-  eda_clean:
-    cmd: python src/proyecto_mlops/data/clean.py --cfg configs/eda.yaml
+  data_cleaning:
+    cmd: python src/data_cleaning/clean.py --cfg configs/eda.yaml
     deps:
-      - src/proyecto_mlops/data/clean.py
+      - src/data_cleaning/clean.py
       - configs/eda.yaml
       - data/raw
     outs:
       - data/processed
 
   features:
-    cmd: python src/proyecto_mlops/features/build_features.py --cfg configs/features.yaml
+    cmd: PYTHONPATH=src python3 src/features.py
     deps:
-      - src/proyecto_mlops/features/build_features.py
+      - src/features.py
       - configs/features.yaml
-      - data/processed
+      - data/processed/clean.csv
     outs:
       - data/interim
 
   train:
-    cmd: python src/proyecto_mlops/modelling/train.py --cfg configs/train.yaml
+    cmd: PYTHONPATH=src python src/modelling/train.py --cfg configs/train.yaml
     deps:
-      - src/proyecto_mlops/modelling/train.py
+      - src/modelling/train.py
       - configs/train.yaml
       - data/interim
     outs:
-      - artifacts/model.pkl
+      - models/best_model.pkl
     metrics:
       - reports/metrics.json:
           cache: false
+
+  graphic_analysis:
+    cmd: python src/visualization/plots.py
+    deps:
+      - src/visualization/plots.py
+      - models/best_model.pkl
+    outs:
+      - reports/figures

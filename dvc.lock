@@ -1,0 +1,143 @@
+schema: '2.0'
+stages:
+  features:
+    cmd: PYTHONPATH=src python3 src/features.py
+    deps:
+    - path: configs/features.yaml
+      hash: md5
+      md5: fc3ecec6afecb47b7108fb81754af549
+      size: 376
+    - path: data/processed/clean.csv
+      hash: md5
+      md5: 1eacf672aa04c5347f511ebf909e5b6f
+      size: 4129729
+    - path: src/features.py
+      hash: md5
+      md5: 84619c93c5ee1cd93de7ba1a6cbc7928
+      size: 3583
+    outs:
+    - path: data/interim
+      hash: md5
+      md5: ee6905c69bd013262c97add6e7212164.dir
+      size: 9565776
+      nfiles: 1
+  train:
+    cmd: PYTHONPATH=src python src/modelling/train.py --cfg configs/train.yaml
+    deps:
+    - path: configs/train.yaml
+      hash: md5
+      md5: ca02400d2466bc018b6021212910ecaf
+      size: 824
+    - path: data/interim
+      hash: md5
+      md5: ee6905c69bd013262c97add6e7212164.dir
+      size: 9565776
+      nfiles: 1
+    - path: src/modelling/train.py
+      hash: md5
+      md5: 65c8248ff3c749cd5ab765396f88df2a
+      size: 20184
+    outs:
+    - path: models/best_model.pkl
+      hash: md5
+      md5: cd252d6797f80c00ddd8e092c58a439e
+      size: 8927828
+    - path: reports/metrics.json
+      hash: md5
+      md5: 3a208cd516687378d52224a953f24128
+      size: 2039
+  evaluate:
+    cmd: python src/visualization/plots.py
+    deps:
+    - path: src/proyecto_mlops/models/best_model.pkl
+      hash: md5
+      md5: 27184e6d24ec79e4c279087ded602026
+      size: 8927828
+    - path: src/visualization/plots.py
+      hash: md5
+      md5: 3b688c48b36a63105430e2aa231e76e4
+      size: 10478
+    outs:
+    - path: reports/figures
+      hash: md5
+      md5: dd430e75668e673aca725dc07690808f.dir
+      size: 657578
+      nfiles: 4
+  eda_clean:
+    cmd: python src/data/clean.py --cfg configs/eda.yaml
+    deps:
+    - path: configs/eda.yaml
+      hash: md5
+      md5: c3f5e047ce19a6b510c34ee795f2ea77
+      size: 327
+    - path: data/raw
+      hash: md5
+      md5: d79c492da907ed55f23b545a48bb6a3d.dir
+      size: 3157634
+      nfiles: 1
+    - path: src/data/clean.py
+      hash: md5
+      md5: a830e8a799ec210a16ed201b2fc5d3ec
+      size: 27153
+    outs:
+    - path: data/processed
+      hash: md5
+      md5: b30d00ce726ada257d94d82029c247b8.dir
+      size: 4129729
+      nfiles: 1
+  graphics_analysis:
+    cmd: python src/visualization/plots.py
+    deps:
+    - path: src/proyecto_mlops/models/best_model.pkl
+      hash: md5
+      md5: 27184e6d24ec79e4c279087ded602026
+      size: 8927828
+    - path: src/visualization/plots.py
+      hash: md5
+      md5: 3b688c48b36a63105430e2aa231e76e4
+      size: 10478
+    outs:
+    - path: reports/figures
+      hash: md5
+      md5: dd430e75668e673aca725dc07690808f.dir
+      size: 657578
+      nfiles: 4
+  data_cleaning:
+    cmd: python src/data_cleaning/clean.py --cfg configs/eda.yaml
+    deps:
+    - path: configs/eda.yaml
+      hash: md5
+      md5: c3f5e047ce19a6b510c34ee795f2ea77
+      size: 327
+    - path: data/raw
+      hash: md5
+      md5: d79c492da907ed55f23b545a48bb6a3d.dir
+      size: 3157634
+      nfiles: 1
+    - path: src/data_cleaning/clean.py
+      hash: md5
+      md5: a830e8a799ec210a16ed201b2fc5d3ec
+      size: 27153
+    outs:
+    - path: data/processed
+      hash: md5
+      md5: b30d00ce726ada257d94d82029c247b8.dir
+      size: 4129729
+      nfiles: 1
+  graphic_analysis:
+    cmd: python src/visualization/plots.py
+    deps:
+    - path: models/best_model.pkl
+      hash: md5
+      md5: cd252d6797f80c00ddd8e092c58a439e
+      size: 8927828
+    - path: src/visualization/plots.py
+      hash: md5
+      md5: 67c4396a5419cacfa37d0ebfaeef4f35
+      size: 10440
+    outs:
+    - path: reports/figures
+      hash: md5
+      md5: de3a8a90b6e46a31fa4368445b771b19.dir
+      size: 652834
+      nfiles: 4

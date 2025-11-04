@@ -1,7 +1,50 @@
-model: RandomForestClassifier
-params:
-  n_estimators: 200
-  max_depth: 8
-metrics:
-  - accuracy
-  - f1
+paths:
+  train: data/interim/features.csv
+  model_out: artifacts/model.pkl
+
+target: usage_kwh
+
+models:
+  Ridge:
+    type: ridge
+    params:
+      alpha: 1.0
+      fit_intercept: true
+      random_state: 42
+  
+  LinearRegression:
+    type: linear_regression
+    params:
+      fit_intercept: true
+      copy_X: true
+      n_jobs: 1
+  
+  kNN:
+    type: knn
+    params:
+      n_neighbors: 50
+      weights: distance
+      metric: minkowski
+      p: 2
+  
+  RegressionTree:
+    type: decision_tree
+    params:
+      max_depth: 10
+      min_samples_split: 2
+      min_samples_leaf: 1
+      random_state: 42
+  
+  RandomForestRegressor:
+    type: random_forest
+    params:
+      n_estimators: 15
+      max_depth: 4
+
+test_size: 0.12
+val_size: 0.2
+random_state: 42
+val_random_state: 43
+cv_n_splits: 5
+cv_n_repeats: 3
+cv_random_state: 7
