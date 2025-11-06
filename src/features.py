@@ -1,7 +1,7 @@
 import argparse
 import pandas as pd
 from pathlib import Path
-from config import load_config
+from src.config import load_config
 
 def build(df: pd.DataFrame, cfg: dict) -> pd.DataFrame:
     # Remove 'date' column explicitly if present
