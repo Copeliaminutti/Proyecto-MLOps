@@ -102,57 +102,6 @@ def test_model_hyperparameters_are_valid(train_config):
                         f"El parámetro '{param_name}' del modelo '{spec.name}' ({param_value}) no está en los valores permitidos {allowed_values}"
 
 
-def test_ridge_alpha_parameter(train_config):
-    """Verifica específicamente que Ridge tenga un alpha válido"""
-    model_specs = ModelSpecLoader.load_from_config(train_config)
-    
-    ridge_specs = [spec for spec in model_specs if spec.model_type == 'ridge']
-    
-    for spec in ridge_specs:
-        alpha = spec.params.get('alpha', 1.0)
-        assert alpha > 0, f"El parámetro alpha de Ridge debe ser positivo, pero es {alpha}"
-        assert alpha in ALLOWED_MODEL_CONFIGS['ridge']['alpha'], \
-            f"El alpha {alpha} no está en los valores permitidos {ALLOWED_MODEL_CONFIGS['ridge']['alpha']}"
-
-
-def test_knn_n_neighbors_parameter(train_config):
-    """Verifica que KNN tenga un número válido de vecinos"""
-    model_specs = ModelSpecLoader.load_from_config(train_config)
-    
-    knn_specs = [spec for spec in model_specs if spec.model_type == 'knn']
-    
-    for spec in knn_specs:
-        n_neighbors = spec.params.get('n_neighbors', 5)
-        assert n_neighbors >= 1, f"El parámetro n_neighbors debe ser al menos 1, pero es {n_neighbors}"
-        assert n_neighbors <= 100, f"El parámetro n_neighbors no debe exceder 100, pero es {n_neighbors}"
-
-
-def test_random_forest_n_estimators(train_config):
-    """Verifica que RandomForest tenga un número válido de árboles"""
-    model_specs = ModelSpecLoader.load_from_config(train_config)
-    
-    rf_specs = [spec for spec in model_specs if spec.model_type == 'random_forest']
-    
-    for spec in rf_specs:
-        n_estimators = spec.params.get('n_estimators', 100)
-        assert n_estimators >= 10, f"El parámetro n_estimators debe ser al menos 10, pero es {n_estimators}"
-        assert n_estimators <= 200, f"El parámetro n_estimators no debe exceder 200, pero es {n_estimators}"
-
-
-def test_decision_tree_max_depth(train_config):
-    """Verifica que DecisionTree tenga un max_depth válido"""
-    model_specs = ModelSpecLoader.load_from_config(train_config)
-    
-    dt_specs = [spec for spec in model_specs if spec.model_type == 'decision_tree']
-    
-    for spec in dt_specs:
-        max_depth = spec.params.get('max_depth', None)
-        if max_depth is not None:
-            assert max_depth >= 1, f"El parámetro max_depth debe ser al menos 1 o None, pero es {max_depth}"
-            assert max_depth in ALLOWED_MODEL_CONFIGS['decision_tree']['max_depth'], \
-                f"El max_depth {max_depth} no está en los valores permitidos"
-
-
 def test_train_config_has_required_paths(train_config):
     """Verifica que la configuración tenga las rutas requeridas"""
     assert 'paths' in train_config, "La configuración debe tener la sección 'paths'"
