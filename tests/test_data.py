@@ -40,7 +40,7 @@ def data_schema(model_input_data, feature_config):
         
         schema[col] = {
             'range': {
-                'min': q1 - (q99 - q1) * 1,  # Margen de error del 50%
+                'min': q1 - (q99 - q1) * 1,
                 'max': q99 + (q99 - q1) * 0.5
             },
             'dtype': model_input_data[col].dtype
