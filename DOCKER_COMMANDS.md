@@ -3,6 +3,12 @@
 ## Construcción de la imagen
 docker build -t energy-prediction-api:v1.0 .
 
+## Etiquetar la imagen para Docker Hub
+docker tag energy-prediction-api:v1.0 hugolb14/proyecto-ml-ops:0.1.0
+
+## Subir la imagen a Docker Hub
+docker push hugolb14/proyecto-ml-ops:0.1.0
+
 ## Ejecutar el contenedor
 docker run -d -p 8000:8000 --name energy-api energy-prediction-api:v1.0
 
