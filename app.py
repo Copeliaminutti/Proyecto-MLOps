@@ -67,3 +67,13 @@ def predict_energy(data: SteelEnergyInput):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error en la predicción: {e}")
+
+
+if __name__ == "__main__":
+    import uvicorn
+    import os
+    
+    # Get port from environment variable (for Render/Cloud platforms) or default to 8000
+    port = int(os.environ.get("PORT", 8000))
+    
+    uvicorn.run(app, host="0.0.0.0", port=port)
