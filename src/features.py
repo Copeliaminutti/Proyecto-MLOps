@@ -1,6 +1,14 @@
 import argparse
 import pandas as pd
 from pathlib import Path
+import sys
+from pathlib import Path
+
+# Add project root to path for imports
+project_root = Path(__file__).resolve().parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
 from src.config import load_config
 
 def build(df: pd.DataFrame, cfg: dict) -> pd.DataFrame:

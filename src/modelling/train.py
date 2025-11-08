@@ -18,7 +18,6 @@ import pandas as pd
 import mlflow
 import mlflow.sklearn
 from mlflow.models.signature import infer_signature
-from src.config import load_config
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import RepeatedKFold, cross_validate, train_test_split
@@ -27,6 +26,16 @@ from sklearn.pipeline import Pipeline
 from sklearn.svm import SVR
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+
+import sys
+from pathlib import Path
+
+# Add project root to path for imports
+project_root = Path(__file__).resolve().parent.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+from src.config import load_config
 
 
 MODEL_REGISTRY: Dict[str, Any] = {
