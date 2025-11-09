@@ -1,7 +1,7 @@
 schema: '2.0'
 stages:
   features:
-    cmd: PYTHONPATH=src python3 src/features.py
+    cmd: python src/features.py
     deps:
     - path: configs/features.yaml
       hash: md5
@@ -22,7 +22,7 @@ stages:
       size: 9565776
       nfiles: 1
   train:
-    cmd: PYTHONPATH=src python src/modelling/train.py --cfg configs/train.yaml
+    cmd: python src/modelling/train.py --cfg configs/train.yaml
     deps:
     - path: configs/train.yaml
       hash: md5
@@ -40,12 +40,12 @@ stages:
     outs:
     - path: models/best_model.pkl
       hash: md5
-      md5: 497843979e48cee83d5c16ae97d2ec1c
+      md5: ed44929c4f199085aca75f3e336baee1
       size: 8927828
     - path: reports/metrics.json
       hash: md5
-      md5: 629b4b53097326da3037dbf3b0db3dd2
-      size: 2040
+      md5: 454cd5a6464e32c2ccd2d6389e65e522
+      size: 2046
   evaluate:
     cmd: python src/visualization/plots.py
     deps:
@@ -129,7 +129,7 @@ stages:
     deps:
     - path: models/best_model.pkl
       hash: md5
-      md5: 497843979e48cee83d5c16ae97d2ec1c
+      md5: ed44929c4f199085aca75f3e336baee1
       size: 8927828
     - path: src/visualization/plots.py
       hash: md5
@@ -138,6 +138,6 @@ stages:
     outs:
     - path: reports/figures
       hash: md5
-      md5: d368cc9904854f7b094dc05f8833e17b.dir
-      size: 653466
+      md5: 481746f11248fd1379c42b321a602570.dir
+      size: 659340
       nfiles: 4

@@ -9,7 +9,7 @@ stages:
       - data/processed
 
   features:
-    cmd: PYTHONPATH=src python3 src/features.py
+    cmd: python src/features.py
     deps:
       - src/features.py
       - configs/features.yaml
@@ -18,7 +18,7 @@ stages:
       - data/interim
 
   train:
-    cmd: PYTHONPATH=src python src/modelling/train.py --cfg configs/train.yaml
+    cmd: python src/modelling/train.py --cfg configs/train.yaml
     deps:
       - src/modelling/train.py
       - configs/train.yaml
